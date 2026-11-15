@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active = "lab3" %}
+{% block title %}Lab 3: Pharming & DNS Hijacking{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 3</div>
+    <h1>💊 Lab 3: Pharming & DNS Hijacking</h1>
+    <p>Name Resolution Monitor · Endpoint simulation</p>
+  </div>
+
+  <div class="section-card">
+    <div class="card-label">📂 Pharming · Local hosts file and DNS poisoning</div>
+    <p style="color:var(--text-secondary);margin-bottom:1rem;">Endpoint: WS-FINANCE-03 · Type the correct address; compare where it resolves.</p>
+    <p class="awareness-caption">DNSSEC verifies DNS answers. It cannot detect a malicious local hosts-file entry.</p>
+    <div class="actual-hosts-row"><code>{{ hosts_file_path }}</code><button class="btn btn-secondary btn-sm" type="button" onclick="openActualHosts()">Open hosts file</button><span id="hostsOpenStatus" aria-live="polite"></span></div>
+    <div class="sim-control-row"><div><strong>Browser address</strong><code>https://www.mybank.com</code></div><button class="btn btn-secondary" id="hostsMode" type="button" onclick="setPharmingMode('hosts')">Hosts file</button><button class="btn btn-secondary" id="dnsMode" type="button" onclick="setPharmingMode('dns')">DNS server</button><button class="btn btn-secondary" id="dnssecToggle" type="button" onclick="toggleDnssec()">DNSSEC: Off</button><button class="btn btn-danger" type="button" onclick="simulatePharming()">Open site</button><button class="btn btn-secondary" type="button" onclick="restorePharming()">Restore</button></div>
+    <div id="pharmingBrowser" class="browser-simulation"></div>
+    <div id="pharmingTrace"></div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+let pharmingMode = 'hosts';
+let dnssecEnabled = false;
+
+function setPharmingMode(mode){
+  pharmingMode = mode;
+  document.getElementById('hostsMode').classList.toggle('btn-primary', mode === 'hosts');
+  document.getElementById('dnsMode').classList.toggle('btn-primary', mode === 'dns');
+  document.getElementById('pharmingTrace').innerHTML = '';
+  document.getElementById('pharmingBrowser').innerHTML = '';
+}
+
+function toggleDnssec(){
+  dnssecEnabled = !dnssecEnabled;
+  document.getElementById('dnssecToggle').textContent = `DNSSEC: ${dnssecEnabled ? 'On' : 'Off'}`;
+  if(document.getElementById('pharmingTrace').innerHTML) simulatePharming();
+}
+
+async function openActualHosts(){
+  const status = document.getElementById('hostsOpenStatus');
+  status.textContent = 'Opening…';
+  try {
+    const response = await fetch('/api/open-hosts', {method:'POST'});
+    const result = await response.json();
+    status.textContent = response.ok ? 'Opened in Notepad' : result.error;
+  } catch(error) {
+    status.textContent = 'Could not open the file.';
+  }
+}
+
+function simulatePharming(){
+  const blocked = pharmingMode === 'dns' && dnssecEnabled;
+  const content = blocked
+    ? `<div class="dns-block-page"><b>Secure DNS check failed</b><p>The DNS answer did not match its cryptographic signature. The browser stopped the connection.</p></div>`
+    : `<div class="mock-page-brand"><span>MB</span><div><b>MyBank Online</b><small>Personal banking</small></div></div>${mockLoginMarkup({brand:'MyBank Online',title:'Access your account'})}`;
+  document.getElementById('pharmingBrowser').innerHTML = mockBrowserFrame('https://www.mybank.com/login', content);
+  let trace;
+  if(pharmingMode === 'hosts'){
+    trace = `<div class="dns-trace-title">Local hosts-file pharming</div><div><span>Hosts file</span><code class="danger-text">185.99.44.33</code></div><div><span>DNS query</span><code class="muted-text">Bypassed</code></div><div class="dns-trace-result">The local override sent the correct URL to the wrong server. DNSSEC does not validate hosts-file entries.</div>`;
+  } else {
+    trace = `<div class="dns-trace-title">DNS server poisoning</div><div><span>Hosts file</span><code>no override</code></div><div><span>DNS answer</span><code class="danger-text">185.99.44.33</code></div><div><span>DNSSEC validation</span><code class="${dnssecEnabled ? 'safe-text' : 'danger-text'}">${dnssecEnabled ? 'invalid answer blocked' : 'off'}</code></div><div class="dns-trace-result">${dnssecEnabled ? 'The forged DNS response was rejected.' : 'With validation off, the forged answer redirected the browser.'}</div>`;
+  }
+  document.getElementById('pharmingTrace').innerHTML = `<div class="dns-trace">${trace}</div>`;
+}
+function restorePharming(){
+  pharmingMode = 'hosts';
+  dnssecEnabled = true;
+  setPharmingMode('hosts');
+  document.getElementById('dnssecToggle').textContent = 'DNSSEC: On';
+  const content = `<div class="mock-page-brand"><span>MB</span><div><b>MyBank Online</b><small>Personal banking</small></div></div>${mockLoginMarkup({brand:'MyBank Online',title:'Access your account'})}`;
+  document.getElementById('pharmingBrowser').innerHTML = mockBrowserFrame('https://www.mybank.com/login', content);
+  document.getElementById('pharmingTrace').innerHTML = `<div class="dns-trace"><div class="dns-trace-title">Name resolution restored</div><div><span>Browser requested</span><code>www.mybank.com</code></div><div><span>Local hosts file</span><code>no override</code></div><div><span>Verified DNS</span><code>203.0.113.20</code></div><div class="dns-trace-result safe-text">Local redirect removed; trusted DNS response selected.</div></div>`;
+}
+setPharmingMode('hosts');
+</script>
+{% endblock %}

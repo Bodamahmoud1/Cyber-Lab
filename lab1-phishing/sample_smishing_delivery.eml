@@ -1,0 +1,50 @@
+Return-Path: <notifications@delivery-eg-update.com>
+Received: from bulk-sms.delivery-eg-update.com (178.33.44.55)
+        by mx.student-phone.local with ESMTP id SMISH002
+        for <+201098765432>; Thu, 13 Nov 2025 11:05:00 +0200
+From: Egypt Post <tracking@delivery-eg-update.com>
+To: +201098765432
+Subject: [SMS] Package Delivery Failed — Action Required
+Date: Thu, 13 Nov 2025 11:05:00 +0200
+Message-ID: <smishing-delivery-006@delivery-eg-update.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+=== SIMULATED SMS MESSAGE (Smishing) ===
+
+From: EgyptPost
+To: +20-109-876-5432
+Time: 11:05 AM
+
+[EgyptPost] Your package #EG-2025-78432 could not be delivered
+due to an incomplete address. Please update your delivery
+information within 24 hours or the package will be returned:
+
+https://egyptpost-tracking.delivery-eg-update.com/update?pkg=78432
+
+A redelivery fee of EGP 25 may apply.
+
+=== END OF SMS ===
+
+--- INSTRUCTOR NOTES ---
+ATTACK TYPE: Smishing (SMS Phishing) — Lecture Slide 16
+
+PSYCHOLOGICAL TRIGGERS USED:
+  1. Trust       — Impersonates legitimate postal service "EgyptPost"
+  2. Urgency     — "within 24 hours" deadline
+  3. Scarcity    — Package will be "returned" (loss aversion)
+  4. Familiarity — Most people regularly receive packages
+
+RED FLAGS:
+  - Domain "delivery-eg-update.com" is NOT egyptpost.gov.eg
+  - Real postal services use official domains and tracking portals
+  - The URL collects personal information (address + likely payment for "fee")
+  - Exploits the fact that many people are always expecting deliveries
+  - Generic — no recipient name or specific package description
+
+CORRECT RESPONSE:
+  - Do NOT click the link
+  - Go directly to the official EgyptPost website to check tracking
+  - If expecting a package, call the courier's official customer service
+  - Report the SMS as spam/phishing
+

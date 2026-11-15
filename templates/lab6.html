@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set active = "lab6" %}
+{% block title %}Lab 6: Watering Hole{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 6</div>
+    <h1>🕳️ Lab 6: Watering Hole Attack</h1>
+    <p>CIS Research Blog · Site integrity monitor</p>
+  </div>
+  <section class="section-card">
+    <div class="card-label">Research Blog</div>
+    <div class="site-toggle"><button class="btn btn-secondary" type="button" onclick="showVersion('clean')">Clean site</button><button class="btn btn-danger" type="button" onclick="showVersion('compromised')">Compromised site</button></div>
+    <div id="siteBrowser" class="browser-simulation"></div>
+    <div id="siteStatus" class="site-status"></div>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+function showVersion(version){
+  const compromised = version === 'compromised';
+  const banner = compromised ? '<div class="watering-alert"><div>⚠</div><section><b>Browser security update required</b><p>A media component needs an update.</p><button type="button" onclick="showWateringNotice()">Update</button></section></div>' : '';
+  const page = `<div class="research-site"><header class="research-site-header"><span>ASU</span><div><b>Ain Shams University</b><small>Faculty of Computer and Information Sciences</small></div><nav>Research &nbsp; Publications</nav></header>${banner}<main><div class="research-breadcrumb">Research / Computer Science</div><h1>CIS Research Blog</h1><article><small>RESEARCH · 6 MIN READ</small><h2>New Machine Learning Research on Arabic NLP</h2><p>Faculty researchers publish benchmark results for dialectical sentiment analysis.</p><span>Read article →</span></article><article><small>EVENTS · THIS WEEK</small><h2>Cybersecurity Awareness Workshop</h2><p>Join students and faculty for a campus security workshop.</p><span>View event →</span></article></main></div>`;
+  document.getElementById('siteBrowser').innerHTML = mockBrowserFrame('https://research.cis.asu.edu.eg/blog', page);
+  document.getElementById('siteStatus').textContent = compromised ? 'Unexpected update prompt detected' : 'Site integrity verified';
+  document.getElementById('siteStatus').className = 'site-status ' + (compromised ? 'unsafe-result' : 'safe-result');
+}
+function showWateringNotice(){
+  const site = document.querySelector('.research-site main');
+  if(site) site.insertAdjacentHTML('afterbegin','<div class="watering-blocked">Update blocked. No file was downloaded.</div>');
+}
+showVersion('clean');
+</script>
+{% endblock %}

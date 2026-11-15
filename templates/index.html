@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% set active = "home" %}
+{% block title %}SE-Labs — Social Engineering Labs{% endblock %}
+
+{% block content %}
+<main>
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-left">
+      <div class="hero-badge">🎓 Cybersecurity — Lecture 6</div>
+      <h1 class="hero-title">
+        Social Engineering<br/>
+        <span class="gradient-text">Practical Labs</span>
+      </h1>
+      <p class="hero-subtitle">
+        8 interactive labs covering phishing, BEC, typosquatting, pharming, baiting,
+        pretexting, watering hole attacks, and SOC defense.
+        <br/>Cybersecurity Lecture 6 · Ain Shams University · By : Abdelrahman Hanfy
+      </p>
+      <div class="hero-actions">
+        <a href="/lab/1" class="btn btn-primary btn-lg">🚀 Start Lab 1</a>
+        <a href="#labs" class="btn btn-ghost btn-lg">📋 View All Labs</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="home-mail-preview">
+        <div class="home-mail-top"><span>✉ Campus Mail</span><small>Inbox</small></div>
+        <div class="home-mail-meta"><b>IT Department</b><span>ITDept@cis-asu.edu.eg</span></div>
+        <h3>URGENT! Your account will be disabled</h3>
+        <p>Verify your university account now. Access will be suspended in 30 minutes.</p>
+        <a class="btn btn-primary" href="/lab/1">Open email simulation →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="labs" style="padding: 3rem 0;">
+    <div class="section-header">
+      <h2>🔬 All 8 Labs</h2>
+      <p>Each lab maps directly to specific lecture slides with interactive exercises</p>
+    </div>
+
+    <div class="labs-grid">
+      <a href="/lab/1" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">1</div>
+          <h3>Phishing & Email Forensics</h3>
+        </div>
+        <p>Compare generic and targeted phishing, inspect suspicious links, and view email and SMS examples.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 5-22</span>
+          <span class="tag tag-web">Interactive</span>
+        </div>
+      </a>
+
+      <a href="/lab/2" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">2</div>
+          <h3>Typosquatting & Open Redirects</h3>
+        </div>
+        <p>Generate look-alike domains using omission, key swap, homoglyphs, and TLD tricks. Understand open redirect vulnerabilities.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 28-29</span>
+          <span class="tag tag-web">Interactive</span>
+        </div>
+      </a>
+
+      <a href="/lab/3" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">3</div>
+          <h3>Pharming & DNS Hijacking</h3>
+        </div>
+        <p>Compare local hosts-file changes with poisoned DNS and see DNSSEC reject a forged response.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 30-31</span>
+          <span class="tag tag-cli">DNS Commands</span>
+        </div>
+      </a>
+
+      <a href="/lab/4" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">4</div>
+          <h3>Baiting & Disinformation</h3>
+        </div>
+        <p>Classify hoaxes and interact with realistic free-offer and USB baiting examples.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 33-34, 39</span>
+          <span class="tag tag-quiz">Quiz</span>
+        </div>
+      </a>
+
+      <a href="/lab/5" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">5</div>
+        <h3>Pretexting & Dumpster Diving</h3>
+        </div>
+        <p>Protect printed invoices and employee lists from dumpster diving, then respond to realistic pretexting scenes.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 23-26, 38, 45</span>
+          <span class="tag tag-quiz">Roleplay</span>
+        </div>
+      </a>
+
+      <a href="/lab/6" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">6</div>
+          <h3>Watering Hole Attack</h3>
+        </div>
+        <p>Switch between a normal university blog and a compromised version with a suspicious update prompt.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slide 36</span>
+          <span class="tag tag-web">Source Diff</span>
+        </div>
+      </a>
+
+      <a href="/lab/7" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">7</div>
+          <h3>Physical SE Awareness</h3>
+        </div>
+        <p>Handle realistic scenarios: tailgating, shoulder surfing, dumpster diving, and USB baiting at the office.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 38-41</span>
+          <span class="tag tag-quiz">Quiz</span>
+        </div>
+      </a>
+
+      <a href="/lab/8" class="lab-card">
+        <div class="lab-card-header">
+          <div class="lab-number">8</div>
+          <h3>SOC Defense Dashboard</h3>
+        </div>
+        <p>Classify incidents and track results from a simulated phishing-awareness campaign.</p>
+        <div class="lab-tags">
+          <span class="tag tag-slide">Slides 44-45</span>
+          <span class="tag tag-web">Capstone</span>
+        </div>
+      </a>
+    </div>
+  </section>
+</main>
+{% endblock %}

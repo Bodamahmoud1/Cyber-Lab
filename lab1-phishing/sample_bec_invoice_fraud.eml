@@ -1,0 +1,39 @@
+Return-Path: <billing@acme-supp1iers.com>
+Received: from smtp.acme-supp1iers.com (103.55.67.89)
+        by mx.target-company.com (Postfix) with ESMTP id INV456DEF
+        for <accounts@target-company.com>; Thu, 13 Nov 2025 11:30:00 +0200
+From: ACME Suppliers - Billing <billing@acme-supp1iers.com>
+To: accounts@target-company.com
+Subject: Updated Payment Details - Invoice #INV-2025-4891
+Date: Thu, 13 Nov 2025 11:29:55 +0200
+Message-ID: <bogus-invoice-003@acme-supp1iers.com>
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+
+<html>
+<body style="font-family: Calibri, sans-serif;">
+<p>Dear Accounts Payable Team,</p>
+
+<p>Please be informed that our banking details have been updated effective
+immediately. All future payments should be directed to the new account below.</p>
+
+<table border="1" cellpadding="8" style="border-collapse: collapse;">
+<tr><td><b>Bank Name</b></td><td>Offshore Global Bank</td></tr>
+<tr><td><b>Account Name</b></td><td>ACME Suppliers Ltd</td></tr>
+<tr><td><b>IBAN</b></td><td>GB82 WEST 1234 5698 7654 32</td></tr>
+<tr><td><b>SWIFT/BIC</b></td><td>OFSGGB2L</td></tr>
+</table>
+
+<p>Attached is the updated invoice for your current outstanding balance of
+<b>$42,750.00</b>. Please process payment within <b>48 hours</b> to avoid
+service disruption.</p>
+
+<p>If you have questions, please contact me directly at this email.</p>
+
+<p>Best regards,<br/>
+Sarah Johnson<br/>
+Billing Department<br/>
+ACME Suppliers</p>
+</body>
+</html>
+

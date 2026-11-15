@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set active = "lab8" %}
+{% block title %}Lab 8: SOC Alert Queue{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 8</div>
+    <h1>🛡️ Lab 8: SOC Alert Queue</h1>
+    <p>Security Operations · Campus environment</p>
+  </div>
+  <div class="score-bar"><div><div class="score-display" id="socScore">0 / 6</div><div class="score-label">Incidents classified</div></div><div class="progress-track"><div class="progress-fill" id="socProgress" style="width:0%"></div></div></div>
+  <section class="soc-console">
+    <div class="soc-console-header"><div class="soc-brand"><span>◈</span> CAMPUS SOC</div><div class="soc-connection"><i></i> ONLINE</div><span>Analyst: Ziad Magdy</span></div>
+    <div class="soc-main-panel"><div class="soc-queue-toolbar"><b>Alert queue</b><small>6 incidents</small></div><div id="socContainer"><div class="loading-spinner"><div class="spinner"></div>Loading alerts...</div></div></div>
+  </section>
+  <section class="section-card awareness-panel">
+    <div class="card-label">📊 Security awareness · Campaign results</div>
+    <p class="awareness-caption">Simulated 50-person phishing exercise · example metrics</p>
+    <div class="awareness-metrics" id="awarenessMetrics">
+      <div><span>Clicked the link</span><strong id="awarenessClicks">14 / 50 · 28%</strong><i><b id="awarenessClicksBar" style="width:28%"></b></i></div>
+      <div><span>Reported the message</span><strong id="awarenessReports">5 / 50 · 10%</strong><i><b id="awarenessReportsBar" style="width:10%"></b></i></div>
+    </div>
+    <button class="btn btn-secondary" id="awarenessLesson" type="button" onclick="completeAwarenessLesson()">Complete 1-minute refresher</button>
+    <span class="awareness-status" id="awarenessStatus" aria-live="polite">Short lessons help staff spot and report new tactics.</span>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+let socS = 0, socA = {};
+let awarenessLessonDone = false;
+const attackTypes = ['Phishing','BEC (CEO Fraud)','Pharming','Disinformation','Tailgating','Watering Hole'];
+
+async function loadSOC(){
+  try {
+    const response = await fetch('/api/soc-alerts');
+    const alerts = await response.json();
+    window._socData = alerts;
+    let html = '';
+    alerts.forEach(alert => {
+      const severityClass = alert.severity === 'CRITICAL' ? 'sev-critical' : (alert.severity === 'HIGH' ? 'sev-high' : 'sev-medium');
+      html += `<article class="alert-card" id="soc-${alert.id}"><div class="alert-header"><strong>${escHtml(alert.id)}</strong><span class="severity-badge ${severityClass}">${escHtml(alert.severity)}</span><small>${escHtml(alert.time)} · ${escHtml(alert.source)}</small></div><p>${escHtml(alert.desc)}</p><div class="alert-details"><dl>`;
+      for(const [key,value] of Object.entries(alert.details)) html += `<dt>${escHtml(key)}</dt><dd>${escHtml(String(value))}</dd>`;
+      html += `</dl></div><div class="soc-classifier"><select id="soc-choice-${alert.id}"><option value="">Classify incident</option>`;
+      attackTypes.forEach(type => { html += `<option value="${escHtml(type)}">${escHtml(type)}</option>`; });
+      html += `</select><button class="btn btn-primary btn-sm" id="soc-submit-${alert.id}" type="button" onclick="submitSOC('${alert.id}')">Submit</button></div><div id="soc-fb-${alert.id}"></div></article>`;
+    });
+    document.getElementById('socContainer').innerHTML = html;
+  } catch(error) { console.error(error); }
+}
+
+function submitSOC(id){
+  const select = document.getElementById(`soc-choice-${id}`);
+  if(select && select.value) answerSOC(id, select.value);
+}
+
+function answerSOC(id, answer){
+  if(socA[id]) return;
+  socA[id] = true;
+  const alert = window._socData.find(item => item.id === id);
+  const correct = answer === alert.type;
+  if(correct) socS++;
+  document.getElementById(`soc-choice-${id}`).disabled = true;
+  document.getElementById(`soc-submit-${id}`).disabled = true;
+  const actions = alert.actions.slice(0,4).map(action => `<li>${escHtml(action)}</li>`).join('');
+  document.getElementById(`soc-fb-${id}`).innerHTML = `<div class="feedback-box ${correct ? 'feedback-correct' : 'feedback-wrong'}"><strong>${correct ? 'Classification confirmed' : 'Incident type mismatch'}</strong><p>${escHtml(alert.type)}</p><ul class="actions-list">${actions}</ul></div>`;
+  document.getElementById('socScore').textContent = `${socS} / 6`;
+  document.getElementById('socProgress').style.width = `${Object.keys(socA).length / 6 * 100}%`;
+}
+
+function completeAwarenessLesson(){
+  if(awarenessLessonDone) return;
+  awarenessLessonDone = true;
+  document.getElementById('awarenessClicks').textContent = '6 / 50 · 12%';
+  document.getElementById('awarenessReports').textContent = '20 / 50 · 40%';
+  document.getElementById('awarenessClicksBar').style.width = '12%';
+  document.getElementById('awarenessReportsBar').style.width = '40%';
+  document.getElementById('awarenessLesson').disabled = true;
+  document.getElementById('awarenessLesson').textContent = 'Refresher completed';
+  document.getElementById('awarenessStatus').textContent = 'Refresher complete: pause, verify through a known contact, and report without fear.';
+}
+loadSOC();
+</script>
+{% endblock %}

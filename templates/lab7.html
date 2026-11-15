@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% set active = "lab7" %}
+{% block title %}Lab 7: Physical Security{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header"><div class="breadcrumb"><a href="/">Home</a> / Lab 7</div><h1>🏢 Lab 7: Physical Security</h1><p>Campus Security · Physical access desk</p></div>
+  <div class="score-bar"><div><div class="score-display" id="physScore">0 / 5</div><div class="score-label">Safe responses</div></div><div class="progress-track"><div class="progress-fill" id="physProgress" style="width:0%"></div></div></div>
+  <div id="physContainer"><div class="loading-spinner"><div class="spinner"></div>Loading scenario...</div></div>
+  <div class="sim-navigation"><button class="btn btn-secondary" id="physPrevious" type="button">← Previous</button><span id="physPosition"></span><button class="btn btn-primary" id="physNext" type="button">Next →</button></div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+let physS = 0, physA = {}, physData = [], physIndex = 0;
+async function loadPhysQuiz(){
+  physS = 0; physA = {}; physIndex = 0;
+  document.getElementById('physScore').textContent = '0 / 5';
+  document.getElementById('physProgress').style.width = '0%';
+  try {
+    const response = await fetch('/api/physical-quiz');
+    physData = await response.json();
+    renderPhysicalQuestion();
+  } catch(error) { console.error(error); }
+}
+function renderPhysicalQuestion(){
+  const q = physData[physIndex];
+  if(!q) return;
+  const answered = Object.prototype.hasOwnProperty.call(physA,q.id);
+  let html = `<div class="scenario-card"><div class="scenario-header"><h3>${escHtml(q.cat)}</h3><span class="tag tag-slide">${physIndex + 1} / ${physData.length}</span></div>${renderPhysicalScene(q)}`;
+  q.options.forEach((option,index) => {
+    const state = answered && index === q.correct ? 'correct' : (answered && index === physA[q.id] ? 'wrong' : '');
+    html += `<button class="option-btn ${state} ${answered ? 'disabled' : ''}" type="button" onclick="answerPhys(${q.id},${index})">${escHtml(option)}</button>`;
+  });
+  if(answered){
+    const ok = physA[q.id] === q.correct;
+    const outcomes = ['ENTRY DENIED · Visitor directed to reception','SESSION PROTECTED · Privacy controls enabled','DISPOSAL SECURED · Documents placed in shredder','DEVICE QUARANTINED · USB delivered to IT','ACCESS DENIED · Visit awaiting verification'];
+    html += `<div class="physical-result ${ok ? 'safe-result' : 'unsafe-result'}"><span>${ok ? '✓' : '!'}</span><strong>${ok ? outcomes[q.id-1] : 'SECURITY EVENT · Policy bypass detected'}</strong></div>`;
+  }
+  document.getElementById('physContainer').innerHTML = html + '</div>';
+  document.getElementById('physPosition').textContent = `${physIndex + 1} / ${physData.length}`;
+  document.getElementById('physPrevious').disabled = physIndex === 0;
+  document.getElementById('physNext').disabled = physIndex === physData.length - 1;
+}
+function answerPhys(id,index){
+  if(Object.prototype.hasOwnProperty.call(physA,id)) return;
+  physA[id] = index;
+  const q = physData.find(item => item.id === id);
+  if(index === q.correct) physS++;
+  document.getElementById('physScore').textContent = `${physS} / ${physData.length}`;
+  document.getElementById('physProgress').style.width = `${Object.keys(physA).length / physData.length * 100}%`;
+  renderPhysicalQuestion();
+}
+document.getElementById('physPrevious').addEventListener('click', () => { if(physIndex > 0){ physIndex--; renderPhysicalQuestion(); } });
+document.getElementById('physNext').addEventListener('click', () => { if(physIndex < physData.length - 1){ physIndex++; renderPhysicalQuestion(); } });
+function renderPhysicalScene(q){
+  const access = q.cat.includes('Tailgating') || q.cat.includes('Combined');
+  let visual = '';
+  if(access) visual = `<div class="physical-door"><div class="physical-reader"><span>▣</span><small>BADGE ACCESS</small><b>LOCKED</b></div><div class="physical-visitor"><span>👤</span><b>UNVERIFIED VISITOR</b><small>No active visitor pass</small><div class="physical-access-state">ACCESS REQUEST PENDING</div></div></div>`;
+  else if(q.cat.includes('Shoulder')) visual = `<div class="physical-laptop-scene"><div class="physical-laptop"><div class="physical-browser-bar">Campus Workspace <span>🔒</span></div><div class="physical-screen-login"><b>Sign in to VPN</b><span>University ID</span><span>Password ••••••••</span><button type="button">Sign in</button></div></div><div class="physical-observer">👤<small>Near the screen</small></div></div>`;
+  else if(q.cat.includes('Dumpster')) visual = `<div class="physical-disposal-scene"><div class="paper-stack">📄<small>Network diagrams</small></div><div class="paper-stack">📄<small>Employee list</small></div><div class="physical-shredder">▤<b>SECURE SHREDDER</b><small>LOCKED BIN</small></div></div>`;
+  else visual = `<div class="physical-usb-scene"><div class="found-usb">▣<b>USB DEVICE</b></div><div class="physical-found-label">“CONFIDENTIAL — HR Salary Review 2025”</div><div class="physical-workstation">IT WORKSTATION <span>USB PORTS BLOCKED</span></div></div>`;
+  return `<div class="physical-scene"><div class="physical-scene-top"><span>FACILITIES SECURITY</span><span>BUILDING A · LIVE FEED</span></div>${visual}<div class="scenario-message">${escHtml(q.scenario)}</div><p class="physical-options-title">Security action</p>`;
+}
+loadPhysQuiz();
+</script>
+{% endblock %}
+

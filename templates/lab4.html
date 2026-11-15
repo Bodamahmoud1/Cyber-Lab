@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% set active = "lab4" %}
+{% block title %}Lab 4: Baiting & Disinformation{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 4</div>
+    <h1>🪤 Lab 4: Baiting & Disinformation Detection</h1>
+    <p>Campus Trust & Safety · Content review queue</p>
+  </div>
+
+  <div class="score-bar">
+    <div>
+      <div class="score-display" id="scoreDisplay">0 / 5</div>
+      <div class="score-label">Classified Correctly</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <button class="btn btn-warning btn-sm" onclick="resetQuiz()"><span>↺</span> Restart Quiz</button>
+  </div>
+
+  <div id="scenariosContainer">
+    <div class="loading-spinner"><div class="spinner"></div> Loading real-world threat scenarios...</div>
+  </div>
+
+  <div class="section-card" style="margin-top:2rem;">
+    <div class="card-label">🎟️ Online bait · Free offer</div>
+    <div class="bait-offer-card">
+      <small>CAMPUS FEST · STUDENT PROMO</small>
+      <h2>Free concert pass</h2>
+      <p>Only two passes left. Sign in with your university account to claim yours.</p>
+      <button class="btn btn-primary" type="button" onclick="chooseFreeOffer('claim')">Claim pass</button>
+      <button class="btn btn-secondary" type="button" onclick="chooseFreeOffer('report')">Report offer</button>
+    </div>
+    <div id="freeOfferResult" aria-live="polite"></div>
+  </div>
+
+  <div class="section-card" style="margin-top:2rem;">
+    <div class="card-label">🪤 Physical USB Baiting · Curiosity lure (Slide 39)</div>
+    <div class="desktop-simulation">
+      <div class="desktop-topbar"><span>▦ File Explorer</span><span>USB DRIVE (E:) &nbsp;⌄</span><span>⋯</span></div>
+      <div class="desktop-file-grid"><div class="desktop-usb-icon">▣<small>USB Drive (E:)</small></div><button class="desktop-file" type="button" onclick="simulateUsb('open')"><span>📄</span><b>Salary_Bonus_2025.html</b><small>Recently modified · 12 KB</small></button></div>
+      <div class="desktop-actions"><button class="btn btn-secondary btn-sm" type="button" onclick="simulateUsb('open')">Open file (simulated)</button><button class="btn btn-primary btn-sm" type="button" onclick="simulateUsb('report')">Report device to IT</button></div>
+      <div id="usbSimulationStatus" class="desktop-status" aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+let hoaxScore = 0, hoaxTotal = 0, hoaxAnswered = {};
+
+async function loadHoaxScenarios(){
+  try {
+    const r = await fetch('/api/hoax-scenarios');
+    const scenarios = await r.json();
+    hoaxTotal = scenarios.length;
+    const c = document.getElementById('scenariosContainer');
+    let html = '';
+    scenarios.forEach(s => {
+      html += `<div class="scenario-card" id="hoax-${s.id}">
+        <div class="scenario-header">
+          <h3>Scenario ${s.id}: ${escHtml(s.title)}</h3>
+          <span class="scenario-badge" style="background:rgba(168,85,247,0.15);color:#c084fc;border:1px solid rgba(168,85,247,0.3);">${escHtml(s.source)}</span>
+        </div>
+        ${renderHoaxArtifact(s)}
+        <p style="font-weight:600;margin-bottom:0.75rem;color:var(--text-secondary);">Select the accurate threat classification (Slides 33-34):</p>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <button class="option-btn" style="flex:1;" onclick="answerHoax(${s.id},'Misinformation')" id="hoax-${s.id}-mis">
+            📰 <b>Misinformation</b> (False info spread WITHOUT malicious intent to deceive)
+          </button>
+          <button class="option-btn" style="flex:1;" onclick="answerHoax(${s.id},'Disinformation')" id="hoax-${s.id}-dis">
+            ⚠️ <b>Disinformation</b> (Deliberately fabricated to harm, deceive, or compromise)
+          </button>
+        </div>
+        <div id="hoax-feedback-${s.id}"></div>
+      </div>`;
+    });
+    c.innerHTML = html;
+    window._hoaxData = scenarios;
+    c.querySelectorAll('.fake-os-artifact').forEach(card => {
+      const buttons = card.querySelectorAll('.fake-os-actions button');
+      buttons.forEach((button,index) => button.addEventListener('click', () => {
+        let status = card.querySelector('.fake-os-status');
+        if(!status){ status = document.createElement('div'); status.className = 'fake-os-status'; card.appendChild(status); }
+        status.textContent = index === 0 ? 'Download blocked in the training environment.' : 'Notification dismissed.';
+      }));
+    });
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+function renderHoaxArtifact(s){
+  const message = escHtml(s.message);
+  if(s.source.includes('Email')) return `<div class="fake-email-artifact"><div class="fake-app-title">✉ Mail <span>Inbox</span></div><div class="fake-email-subject">${escHtml(s.title)}</div><div class="fake-email-meta"><b>Unknown sender</b><small>to student · now</small></div><div class="fake-email-body">${message}</div></div>`;
+  if(s.source.includes('Pop-up')) return `<div class="fake-os-artifact"><div class="fake-os-title"><span>▣</span> System Security <small>now</small></div><div class="fake-os-body">${message}</div><div class="fake-os-actions"><button type="button">Download</button><button type="button">Dismiss</button></div><div class="fake-os-status" aria-live="polite"></div></div>`;
+  if(s.source.includes('Phone')) return `<div class="fake-phone-artifact"><div class="fake-phone-notch"></div><div class="fake-phone-call"><small>INCOMING CALL</small><b>Unknown Caller</b><span>☎</span><div>${message}</div><button type="button">Decline</button></div></div>`;
+  if(s.source.includes('WhatsApp')) return `<div class="fake-chat-artifact"><div class="fake-chat-top">WhatsApp <span>Group chat</span></div><div class="fake-chat-wall"><div class="fake-chat-bubble">${message}<small>Forwarded · 10:42</small></div></div><div class="fake-chat-compose">Message</div></div>`;
+  return `<div class="fake-social-artifact"><div class="fake-social-top">Social Feed <span>⋯</span></div><div class="fake-social-author"><span>AS</span><b>Campus Community</b><small> · 2h</small></div><div class="fake-social-body">${message}</div><div class="fake-social-actions">♡ Like &nbsp; ◯ Comment &nbsp; ↗ Share</div></div>`;
+}
+
+function simulateUsb(action){
+  const status = document.getElementById('usbSimulationStatus');
+  status.className = `desktop-status ${action === 'report' ? 'safe-text' : 'danger-text'}`;
+  status.textContent = action === 'report' ? 'Device reported. The training workstation has not opened the file.' : 'Simulation only: the suspicious file was not opened and no code or callback ran.';
+}
+
+function chooseFreeOffer(action){
+  const result = document.getElementById('freeOfferResult');
+  result.innerHTML = action === 'claim'
+    ? '<div class="sim-system-result unsafe-result"><span class="sim-result-indicator">!</span><div><strong>Sign-in requested before the reward</strong><p>The free offer and “only two left” message create curiosity and scarcity. Training simulation only; no credentials were entered or sent.</p></div></div>'
+    : '<div class="sim-system-result safe-result"><span class="sim-result-indicator">✓</span><div><strong>Offer reported</strong><p>Check the event through the official campus page before sharing account details.</p></div></div>';
+  document.querySelectorAll('.bait-offer-card button').forEach(button => button.disabled = true);
+}
+
+function answerHoax(id, answer){
+  if(hoaxAnswered[id]) return;
+  hoaxAnswered[id] = true;
+  const s = window._hoaxData.find(x => x.id === id);
+  const correct = s.classification.startsWith(answer.substring(0,3));
+  const misBtn = document.getElementById(`hoax-${id}-mis`);
+  const disBtn = document.getElementById(`hoax-${id}-dis`);
+  misBtn.classList.add('disabled');
+  disBtn.classList.add('disabled');
+
+  if(s.classification.startsWith('Mis')){
+    misBtn.classList.add('correct');
+    if(!correct) disBtn.classList.add('wrong');
+  } else {
+    disBtn.classList.add('correct');
+    if(!correct) misBtn.classList.add('wrong');
+  }
+
+  if(correct) hoaxScore++;
+
+  let fb = `<div class="feedback-box ${correct?'feedback-correct':'feedback-wrong'}">`;
+  fb += `<p><strong>${correct?'✅ Correct!':'❌ Incorrect.'}</strong> Verified classification: <strong>${s.classification}</strong>.</p>`;
+  fb += `<p style="margin-top:0.5rem;color:var(--text-secondary);font-size:0.88rem;">${escHtml(s.explanation)}</p>`;
+  fb += '<div class="trigger-list" style="margin-top:0.75rem;">';
+  s.triggers.forEach(t => {
+    fb += `<span class="trigger-badge">🎯 ${escHtml(t)}</span>`;
+  });
+  fb += '</div></div>';
+
+  document.getElementById(`hoax-feedback-${id}`).innerHTML = fb;
+  document.getElementById('scoreDisplay').textContent = `${hoaxScore} / ${hoaxTotal}`;
+  document.getElementById('progressFill').style.width = `${(Object.keys(hoaxAnswered).length / hoaxTotal) * 100}%`;
+}
+
+function resetQuiz(){
+  hoaxScore = 0;
+  hoaxAnswered = {};
+  document.getElementById('scoreDisplay').textContent = `0 / ${hoaxTotal}`;
+  document.getElementById('progressFill').style.width = '0%';
+  loadHoaxScenarios();
+}
+
+loadHoaxScenarios();
+</script>
+{% endblock %}

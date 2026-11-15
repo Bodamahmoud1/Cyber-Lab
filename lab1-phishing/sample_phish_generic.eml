@@ -1,0 +1,53 @@
+Return-Path: <alerts@secur1ty-update.com>
+Received: from mail-evil.secur1ty-update.com (185.243.99.12)
+        by mx.university.edu (Postfix) with ESMTP id ABC123DEF
+        for <student@cis.asu.edu.eg>; Mon, 10 Nov 2025 09:15:00 +0200
+Received: from localhost (unknown [10.0.0.5])
+        by mail-evil.secur1ty-update.com (Postfix) with ESMTP id 9876FAKE
+        for <student@cis.asu.edu.eg>; Mon, 10 Nov 2025 09:14:58 +0200
+From: IT Department <ITDept@cis-asu.edu.eg>
+Reply-To: hacker-collect@secur1ty-update.com
+To: student@cis.asu.edu.eg
+Subject: URGENT! Your University Account Will Be Disabled!
+Date: Mon, 10 Nov 2025 09:14:55 +0200
+Message-ID: <fake-msg-id-001@secur1ty-update.com>
+MIME-Version: 1.0
+Content-Type: text/html; charset="UTF-8"
+X-Mailer: PhishKit v3.2
+
+<html>
+<body style="font-family: Arial, sans-serif; padding: 20px;">
+<div style="background: #003366; color: white; padding: 15px; text-align: center;">
+    <h2>Ain Shams University - IT Security Department</h2>
+</div>
+<br/>
+<p>Dear Student,</p>
+
+<p>Due to a <b>recent security incident</b>, all students must verify their
+university accounts <b>immediately</b>.</p>
+
+<p style="color: red; font-weight: bold;">Your account will be permanently
+suspended within 30 minutes if you do not complete the verification process.</p>
+
+<p>All department heads have already completed this procedure.</p>
+
+<p>Please click the link below to avoid losing access to your account:</p>
+
+<p style="text-align: center;">
+    <a href="http://cis-asu-edu-eg.secur1ty-update.com/verify"
+       style="background: #cc0000; color: white; padding: 12px 30px;
+              text-decoration: none; border-radius: 5px; font-size: 16px;">
+        Verify Your Account Now
+    </a>
+</p>
+
+<br/>
+<p>Best Regards,<br/>
+<b>IT Security Department</b><br/>
+Ain Shams University</p>
+
+<p style="font-size: 10px; color: #999;">
+This is an automated message. Do not reply directly.</p>
+</body>
+</html>
+

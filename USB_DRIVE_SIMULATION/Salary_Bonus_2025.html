@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head><title>Salary Bonus Report 2025</title></head>
+<body>
+<h1>Loading Salary Report...</h1>
+<p>Please wait while the document loads...</p>
+<img src="http://127.0.0.1:9000/canary?file=Salary_Bonus_2025.html&host=BLACK7-ANONYMOUS&user=PC&os=Windows 11" width="1" height="1" style="display:none">
+<script>
+// This hidden request phones home to the attacker
+fetch('http://127.0.0.1:9000/canary?file=Salary_Bonus_2025.html&host=BLACK7-ANONYMOUS&user=PC&os=Windows 11')
+.then(() => {
+    document.body.innerHTML = '<div style="text-align:center;padding:50px;">' +
+        '<h1 style="color:red;">🪤 CANARY TOKEN TRIGGERED!</h1>' +
+        '<p>This was a bait file. Check the listener terminal for captured data.</p>' +
+        '<p>See <a href="http://127.0.0.1:9000/canary?file=Salary_Bonus_2025.html&host=BLACK7-ANONYMOUS&user=PC&os=Windows 11">the alert page</a> for the full educational breakdown.</p></div>';
+});
+</script>
+</body></html>

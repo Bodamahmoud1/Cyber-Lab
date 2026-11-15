@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>University Account · Session expired</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body class="login-redirect-body">
+  <header class="login-redirect-header"><span>U</span><div><b>University Portal</b><small>Identity Services</small></div><a href="/lab/2">Return to Browser Lab</a></header>
+  <main class="login-redirect-main">
+    <div class="login-session-alert"><span>!</span><div><b>Your session has expired</b><small>Sign in again to continue to the requested page.</small></div></div>
+    <section class="mock-login-card">
+      <div class="mock-login-mark">U</div>
+      <h2>Sign in</h2>
+      <p>Use your university account</p>
+      <form class="mock-login-form" onsubmit="finishLocalLogin(event)">
+        <label>University ID<input name="demo-user" type="text" autocomplete="off" placeholder="Enter your university ID"/></label>
+        <label>Password<input name="demo-password" type="password" autocomplete="new-password" placeholder="Enter your password"/></label>
+        <button type="submit">Continue</button>
+        <div class="mock-login-status" id="loginStatus" aria-live="polite"></div>
+      </form>
+      <small class="mock-login-footer">© 2026 University Identity Services</small>
+    </section>
+  </main>
+  <script>
+    function finishLocalLogin(event){
+      event.preventDefault();
+      event.currentTarget.reset();
+      document.getElementById('loginStatus').textContent = 'Session could not be verified.';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% set active = "lab2" %}
+{% block title %}Lab 2: Typosquatting & Redirection{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 2</div>
+    <h1>🔗 Lab 2: Typosquatting & Open Redirects</h1>
+    <p>Safe Browser Session · URL inspection</p>
+  </div>
+
+  <div class="section-card">
+    <div class="card-label">🔍 Interactive Typosquatting Domain Generator</div>
+    <p style="color:var(--text-secondary);margin-bottom:1rem;">Domain reputation · Look-alike preview</p>
+    <div class="domain-input-row">
+      <input type="text" class="domain-input" id="domainInput" placeholder="e.g. amazon.com, cis.asu.edu.eg, google.com" value="amazon.com"/>
+      <button class="btn btn-primary" onclick="generateTypos()"><span>⚡</span> Generate Variations</button>
+    </div>
+    <div id="typoResults">
+      <div style="text-align:center;padding:2rem;color:var(--text-dim);">
+        Enter a domain and click <b>Generate Variations</b> to calculate algorithmic look-alikes.
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="card-label">↪ Local redirect example</div>
+    <div class="redirect-example"><code>127.0.0.1:5500/sim/open-redirect?next=account-check</code><a class="btn btn-primary" href="/sim/open-redirect?next=account-check" target="_blank" rel="noopener">Run redirect ↗</a></div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+async function generateTypos(){
+  const domain = document.getElementById('domainInput').value.trim();
+  if(!domain) return;
+  const container = document.getElementById('typoResults');
+  container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div> Generating algorithmic variations (omissions, swaps, homoglyphs)...</div>';
+
+  try {
+    const r = await fetch('/api/typosquat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({domain})
+    });
+    const d = await r.json();
+    if(d.error){
+      container.innerHTML = `<p style="color:var(--accent-red);">${escHtml(d.error)}</p>`;
+      return;
+    }
+
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <span style="color:var(--accent-amber);font-weight:600;">⚠️ ${d.count} look-alike variations generated for <code>${escHtml(d.domain)}</code></span>
+      <span class="tag tag-web">Slide 29 Typosquatting</span>
+    </div>`;
+
+    html += '<table class="typo-table"><thead><tr><th>Look-Alike Domain</th><th>Technique</th><th>Transformation Details</th><th>Preview</th></tr></thead><tbody>';
+
+    const typeClass = {
+      'Omission':'type-omission',
+      'Adjacent Key':'type-adjacent',
+      'Duplication':'type-duplicate',
+      'Swap':'type-swap',
+      'Homoglyph':'type-homoglyph',
+      'TLD Change':'type-tld'
+    };
+
+    d.variants.slice(0,8).forEach(v => {
+      const tc = typeClass[v.type] || '';
+      html += `<tr><td><b>${escHtml(v.domain)}</b></td><td><span class="type-badge ${tc}">${escHtml(v.type)}</span></td><td>${escHtml(v.detail)}</td><td><button class="btn btn-danger btn-sm typo-preview" type="button" data-domain="${escHtml(v.domain)}">Open preview</button></td></tr>`;
+    });
+    html += '</tbody></table>';
+    html += '<div class="browser-simulation"><div id="domainBrowser"></div></div>';
+
+    html += `<div style="margin-top:1.25rem;padding:1rem;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius);">
+      <strong style="color:var(--accent-green);">🛡️ Enterprise Defense (Slide 29):</strong>
+      <span style="color:var(--text-secondary);">Defensively register high-probability typos, continuously monitor Certificate Transparency (CT) logs for spoofed certs, deploy DNS protection filters, and instruct staff to use saved bookmarks.</span>
+    </div>`;
+
+    container.innerHTML = html;
+    container.querySelectorAll('.typo-preview').forEach(button => button.addEventListener('click', () => previewTyposquat(button.dataset.domain)));
+  } catch(err) {
+    container.innerHTML = `<p style="color:var(--accent-red);">Error: ${escHtml(err.message)}</p>`;
+  }
+}
+
+function previewTyposquat(domain){
+  const content = `<div class="mock-page-brand"><span>AS</span><div><b>Ain Shams University</b><small>Student Services</small></div></div>${mockLoginMarkup({brand:'University Portal',title:'Sign in to continue'})}`;
+  document.getElementById('domainBrowser').innerHTML = mockBrowserFrame(`http://${domain}/login`, content);
+}
+
+</script>
+{% endblock %}

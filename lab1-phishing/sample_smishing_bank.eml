@@ -1,0 +1,51 @@
+Return-Path: <no-reply@bank-alerts-eg.com>
+Received: from sms-gateway.bank-alerts-eg.com (103.44.55.66)
+        by mx.student-phone.local with ESMTP id SMISH001
+        for <+201012345678>; Wed, 12 Nov 2025 14:22:00 +0200
+From: EgyptBank Security <alerts@bank-alerts-eg.com>
+To: +201012345678
+Subject: [SMS] Suspicious Transaction Alert
+Date: Wed, 12 Nov 2025 14:22:00 +0200
+Message-ID: <smishing-sample-005@bank-alerts-eg.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+X-SMS-Gateway: BulkSMS-Pro v2.1
+
+=== SIMULATED SMS MESSAGE (Smishing) ===
+
+From: EgyptBank
+To: +20-101-234-5678
+Time: 14:22 PM
+
+[EgyptBank] ALERT: A transaction of EGP 15,750 was attempted
+from your account ending in 4829. If this was NOT you, click
+below to BLOCK your card immediately:
+
+https://egyptbank-secure.bank-alerts-eg.com/block?id=4829&otp=verify
+
+Reply STOP to cancel alerts.
+
+=== END OF SMS ===
+
+--- INSTRUCTOR NOTES ---
+ATTACK TYPE: Smishing (SMS Phishing) — Lecture Slide 16
+
+PSYCHOLOGICAL TRIGGERS USED:
+  1. Trust       — Uses real bank name "EgyptBank" and official-sounding sender
+  2. Urgency     — "immediately" + fear of unauthorized transaction
+  3. Intimidation — Financial loss (EGP 15,750 transaction)
+  4. Authority   — Appears to come from the bank's security system
+
+RED FLAGS:
+  - Domain "bank-alerts-eg.com" is NOT the real bank domain
+  - Real banks don't send card-blocking links via SMS
+  - The URL asks for OTP verification (banks never do this via SMS links)
+  - Generic "BulkSMS-Pro" gateway used
+  - No personalization (no account holder name)
+
+CORRECT RESPONSE:
+  - Do NOT click the link
+  - Call the number on the BACK of your bank card
+  - Check your bank app directly for real transaction alerts
+  - Report the SMS to your bank's fraud department
+

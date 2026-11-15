@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}SE-Labs{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">🛡️</span>
+    <span class="brand-name">SE-<span class="brand-accent">Labs</span></span>
+    <span class="badge badge-edu">Educational</span>
+  </div>
+  <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primaryNav">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="primaryNav">
+    <a href="/" class="nav-link {% if active == 'home' %}active{% endif %}">Home</a>
+    <a href="/lab/1" class="nav-link {% if active == 'lab1' %}active{% endif %}">Phishing</a>
+    <a href="/lab/2" class="nav-link {% if active == 'lab2' %}active{% endif %}">Redirection</a>
+    <a href="/lab/3" class="nav-link {% if active == 'lab3' %}active{% endif %}">Pharming</a>
+    <a href="/lab/4" class="nav-link {% if active == 'lab4' %}active{% endif %}">Baiting</a>
+    <a href="/lab/5" class="nav-link {% if active == 'lab5' %}active{% endif %}">Pretexting</a>
+    <a href="/lab/6" class="nav-link {% if active == 'lab6' %}active{% endif %}">Watering Hole</a>
+    <a href="/lab/7" class="nav-link {% if active == 'lab7' %}active{% endif %}">Physical SE</a>
+    <a href="/lab/8" class="nav-link {% if active == 'lab8' %}active{% endif %}">SOC Defense</a>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<footer class="footer">
+  <p>🛡️ SE-Labs &nbsp;|&nbsp; Cybersecurity Lecture 6: Social Engineering &nbsp;|&nbsp; By : Abdelrahman Hanfy &nbsp;|&nbsp; Ain Shams University</p>
+</footer>
+
+<script src="/static/js/app.js"></script>
+<script>
+const nav = document.querySelector('.navbar');
+const navToggle = document.querySelector('.nav-toggle');
+const primaryNav = document.getElementById('primaryNav');
+
+function setNavOpen(open){
+  nav.classList.toggle('nav-open', open);
+  navToggle.setAttribute('aria-expanded', String(open));
+  navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+}
+
+navToggle.addEventListener('click', () => setNavOpen(!nav.classList.contains('nav-open')));
+primaryNav.querySelectorAll('a').forEach(link => link.addEventListener('click', () => setNavOpen(false)));
+document.addEventListener('keydown', event => { if(event.key === 'Escape') setNavOpen(false); });
+document.addEventListener('click', event => {
+  if(!nav.contains(event.target)) setNavOpen(false);
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

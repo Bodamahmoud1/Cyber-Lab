@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% set active = "lab5" %}
+{% block title %}Lab 5: Pretexting & Dumpster Diving{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 5</div>
+    <h1>🎭 Lab 5: Pretexting & Dumpster Diving</h1>
+    <p>Workplace Activity · Employee session</p>
+  </div>
+
+  <div class="section-card">
+    <div class="card-label">🗑️ Dumpster Diving · Printer Room</div>
+    <p style="color:var(--text-secondary);margin-bottom:1rem;">An employee list and an old invoice were left beside the recycling bin. What should Ziad do?</p>
+    <div class="physical-disposal-scene" id="dumpsterScene" aria-live="polite">
+      <div class="paper-stack">📄<small>Employee list</small></div>
+      <div class="paper-stack">🧾<small>Old invoice</small></div>
+      <div class="physical-shredder"><span>▤</span><b>LOCKED BIN</b><small>SECURE DISPOSAL</small></div>
+    </div>
+    <div class="sim-action-bar" id="dumpsterChoices">
+      <button class="option-btn" type="button" onclick="chooseDisposal(false)">Leave in recycling</button>
+      <button class="option-btn" type="button" onclick="chooseDisposal(true)">Use locked shred bin</button>
+    </div>
+    <div id="dumpsterResult" aria-live="polite"></div>
+  </div>
+
+  <div class="section-card" style="margin-top:2rem;">
+    <div class="card-label">🎭 Pretexting Scenarios</div>
+    <section class="classroom-sim" aria-labelledby="classroomSimTitle">
+      <div class="classroom-sim-heading">
+        <div>
+          <span class="tag tag-slide">LIVE SIMULATION</span>
+          <h2 id="classroomSimTitle">Workplace Activity</h2>
+        </div>
+        <div class="sim-progress" id="simProgress" aria-live="polite"></div>
+      </div>
+      <div id="classroomSim" aria-live="polite"></div>
+      <div class="sim-navigation">
+        <button class="btn btn-secondary" id="simPrevious" type="button">← Previous scene</button>
+        <button class="btn btn-ghost" id="simReset" type="button">Reset role-play</button>
+        <button class="btn btn-primary" id="simNext" type="button">Next scene →</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+const classroomScenes = [
+  {
+    title:'Incoming call', channel:'phone',
+    caller:'IT Support · +20 2 5550 2234',
+    subject:'Mailbox migration',
+    message:'We are migrating mailboxes now. Tell me your password so I can keep your account active. We have to finish in 10 minutes.',
+    unsafeLabel:'Share password', safeLabel:'End call & verify',
+    unsafeState:'Call connected · account access at risk',
+    safeState:'Call ended · verification pending',
+    unsafeDetail:'The caller is now marked as having received account access in this simulated call.',
+    safeDetail:'Callback placed to the IT Help Desk directory number. No password was shared.'
+  },
+  {
+    title:'Bank fraud alert', channel:'phone',
+    caller:'Bank Security · Incoming call',
+    subject:'Suspicious card transaction',
+    message:'We blocked a transfer from your card. Read me the SMS code to cancel it before the next payment goes through.',
+    unsafeLabel:'Read the SMS code', safeLabel:'Hang up & call the bank',
+    unsafeState:'One-time code exposed · account at risk',
+    safeState:'Call ended · bank verified independently',
+    unsafeDetail:'The caller used a fake fraud alert to request a one-time code.',
+    safeDetail:'Call the number printed on the bank card and check the official banking app.'
+  },
+  {
+    title:'Payment request', channel:'email',
+    caller:'John Smith <j.smith@compaany.com>',
+    subject:'Urgent wire transfer · Confidential',
+    attachment:'New_Partner_Payment_Details.pdf',
+    message:'I am in a meeting and need the payment sent today to our new partner. Do not call me or tell anyone. Please confirm when it is done.',
+    unsafeLabel:'Process request', safeLabel:'Hold & verify',
+    unsafeState:'Payment request processed · review required',
+    safeState:'Payment held · second approval required',
+    unsafeDetail:'The simulated request bypassed verification and approval.',
+    safeDetail:'Call the requester using a known number and get a second approver before any transfer.'
+  },
+  {
+    title:'Supplier bank detail change', channel:'email',
+    caller:'ACME Suppliers · Billing',
+    subject:'Updated payment details · Invoice 4891',
+    attachment:'Updated_Bank_Details.pdf',
+    message:'We changed our bank account. Please use the attached details for the EGP 42,750 invoice due tomorrow. Reply when updated.',
+    unsafeLabel:'Update the account', safeLabel:'Hold & verify with known contact',
+    unsafeState:'Supplier payment details changed without verification',
+    safeState:'Change held · callback verification required',
+    unsafeDetail:'An email request changed payment instructions without an independent check.',
+    safeDetail:'Contact the supplier using a saved number and follow the second-approval process.'
+  },
+  {
+    title:'Visitor at secure entrance', channel:'door',
+    caller:'Network technician · Visitor badge missing',
+    subject:'Network outage service visit',
+    message:'I am here to fix the network. I left my visitor badge at reception. Could you hold the door? Everyone is waiting for the internet to come back.',
+    unsafeLabel:'Unlock door', safeLabel:'Direct to reception',
+    unsafeState:'Door unlocked · visitor not verified',
+    safeState:'Door secured · visitor sent to reception',
+    unsafeDetail:'The simulated door opened without a valid visitor badge.',
+    safeDetail:'Entry denied. Reception will verify the service visit before granting access.'
+  }
+];
+
+let activeSimScene = 0;
+const simChoices = {};
+
+function renderClassroomSimulation(){
+  const scene = classroomScenes[activeSimScene];
+  const choice = simChoices[activeSimScene];
+  document.getElementById('simProgress').textContent = `Scene ${activeSimScene + 1} of ${classroomScenes.length}`;
+  document.getElementById('simPrevious').disabled = activeSimScene === 0;
+  document.getElementById('simNext').disabled = activeSimScene === classroomScenes.length - 1;
+  let content = '';
+  if(scene.channel === 'phone'){
+    content = `<div class="sim-phone-screen"><div class="sim-phone-top">9:41 &nbsp; ●●● &nbsp; ◔</div><div class="sim-call-avatar">☎</div><small>INCOMING CALL</small><h3>${escHtml(scene.caller)}</h3><span class="sim-call-subtitle">${escHtml(scene.subject)}</span><div class="sim-caller-message">“${escHtml(scene.message)}”</div><div class="sim-call-controls"><span>○</span><span>○</span><span>○</span></div></div>`;
+  } else if(scene.channel === 'email'){
+    content = `<div class="sim-email-window"><div class="sim-email-toolbar">▣ Inbox <span>⌕ &nbsp; ⋮</span></div><div class="sim-email-subject">${escHtml(scene.subject)}</div><div class="sim-email-from"><div class="sim-mail-avatar">${escHtml((scene.caller.match(/\b([A-Z])/g) || ['?']).slice(0,2).join(''))}</div><div><b>${escHtml(scene.caller)}</b><small>to Ziad · just now</small></div><span>⋮</span></div><div class="sim-email-body">${escHtml(scene.message)}</div>${scene.attachment ? `<div class="sim-email-attachment">▤ &nbsp; ${escHtml(scene.attachment)}</div>` : ''}</div>`;
+  } else {
+    content = `<div class="sim-door-scene"><div class="sim-door"><div class="sim-door-sign">STAFF ONLY</div><div class="sim-door-handle"></div><div class="sim-reader"><span>▣</span><small>BADGE</small></div><div class="sim-door-state ${choice === 'unsafe' ? 'door-open' : ''}">${choice === 'unsafe' ? 'UNLOCKED' : 'LOCKED'}</div></div><div class="sim-visitor"><div class="sim-visitor-icon">👤</div><b>${escHtml(scene.caller)}</b><small>${escHtml(scene.subject)}</small><p>“${escHtml(scene.message)}”</p><span class="sim-visitor-badge">NO VISITOR BADGE</span></div></div>`;
+  }
+  let html = `<div class="sim-scene-title"><div><span class="tag tag-slide">${escHtml(scene.channel.toUpperCase())}</span><h3>${escHtml(scene.title)}</h3></div><span class="sim-employee">Ziad Magdy · Staff</span></div>
+    ${content}
+    <div class="sim-action-bar"><button class="option-btn" type="button" onclick="chooseSimulationResponse('unsafe')" ${choice ? 'disabled' : ''}>${escHtml(scene.unsafeLabel)}</button><button class="option-btn" type="button" onclick="chooseSimulationResponse('safe')" ${choice ? 'disabled' : ''}>${escHtml(scene.safeLabel)}</button></div>`;
+  if(choice) html += `<div class="sim-system-result ${choice === 'safe' ? 'safe-result' : 'unsafe-result'}"><span class="sim-result-indicator">${choice === 'safe' ? '✓' : '!'}</span><div><strong>${escHtml(choice === 'safe' ? scene.safeState : scene.unsafeState)}</strong><p>${escHtml(choice === 'safe' ? scene.safeDetail : scene.unsafeDetail)}</p></div></div>`;
+  document.getElementById('classroomSim').innerHTML = html;
+}
+
+function chooseSimulationResponse(choice){
+  if(Object.prototype.hasOwnProperty.call(simChoices, activeSimScene)) return;
+  simChoices[activeSimScene] = choice;
+  renderClassroomSimulation();
+}
+
+document.getElementById('simPrevious').addEventListener('click', () => {
+  if(activeSimScene > 0){ activeSimScene--; renderClassroomSimulation(); }
+});
+document.getElementById('simNext').addEventListener('click', () => {
+  if(activeSimScene < classroomScenes.length - 1){ activeSimScene++; renderClassroomSimulation(); }
+});
+document.getElementById('simReset').addEventListener('click', () => {
+  activeSimScene = 0;
+  Object.keys(simChoices).forEach(key => delete simChoices[key]);
+  renderClassroomSimulation();
+});
+
+function chooseDisposal(secure){
+  document.querySelectorAll('#dumpsterChoices button').forEach(button => button.disabled = true);
+  const result = document.getElementById('dumpsterResult');
+  result.innerHTML = secure
+    ? '<div class="sim-system-result safe-result"><span class="sim-result-indicator">✓</span><div><strong>Documents secured for shredding</strong><p>The names and payment details are no longer exposed in the waste bin.</p></div></div>'
+    : '<div class="sim-system-result unsafe-result"><span class="sim-result-indicator">!</span><div><strong>Information left exposed</strong><p>Someone searching the recycling could recover names and invoice details.</p></div></div>';
+}
+
+renderClassroomSimulation();
+</script>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% set active = "lab1" %}
+{% block title %}Lab 1: Phishing & Email Forensics{% endblock %}
+{% block content %}
+<main class="page-main">
+  <div class="page-header">
+    <div class="breadcrumb"><a href="/">Home</a> / Lab 1</div>
+    <h1>🎣 Lab 1: Phishing & Email Forensics</h1>
+    <p>Campus Mail & Messages · Security review queue</p>
+  </div>
+
+  <section class="mail-client">
+    <div class="mail-app-bar"><span class="mail-brand"><span>✉</span> Campus Mail</span><span class="mail-avatar">AB</span></div>
+    <div class="mail-layout">
+      <div class="mail-workspace">
+        <div class="mail-toolbar"><span>Inbox</span></div>
+        <div class="email-selector">
+          <select class="email-select" id="emailSelect" onchange="analyzeEmail()">
+            <option value="">Select email</option>
+          </select>
+        </div>
+        <div id="mailPreview" class="mail-message-preview"><div class="mail-empty">Select a message from the training inbox.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="analysisResult"></div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+async function loadEmails(){
+  try {
+    const r = await fetch('/api/list-emails');
+    const emails = await r.json();
+    const sel = document.getElementById('emailSelect');
+    emails.forEach(e => {
+      const opt = document.createElement('option');
+      opt.value = e.value;
+      opt.textContent = e.label;
+      sel.appendChild(opt);
+    });
+    // Auto-select first sample for immediate feedback
+    if(emails.length > 0){
+      sel.value = emails[0].value;
+      analyzeEmail();
+    }
+  } catch(err) {
+    console.error(err);
+  }
+}
+
+async function analyzeEmail(){
+  const sample = document.getElementById('emailSelect').value;
+  if(!sample) return;
+  const container = document.getElementById('analysisResult');
+  container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div> Running deep header & body analysis...</div>';
+
+  try {
+    const r = await fetch('/api/analyze-email', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({sample})
+    });
+    const d = await r.json();
+    if(d.error){
+      container.innerHTML = `<div class="section-card" style="color:var(--accent-red);">${escHtml(d.error)}</div>`;
+      return;
+    }
+
+    if(d.channel === 'sms') renderSmsPreview(d);
+    else renderMailPreview(d);
+
+    const triggerNames = Object.keys(d.triggers || {});
+    const totalFlags = d.domain_flags.length + triggerNames.length + ((d.urls || []).length ? 1 : 0);
+    const riskClass = totalFlags >= 4 ? 'verdict-high' : (totalFlags >= 2 ? 'verdict-med' : 'verdict-low');
+    const riskText = totalFlags >= 4 ? 'HIGH RISK' : (totalFlags >= 2 ? 'SUSPICIOUS' : 'LOW RISK');
+    const senderSummary = d.domain_flags.length ? 'Sender and reply address do not match' : 'Sender domains match';
+    const pressureSummary = triggerNames.length ? triggerNames.join(', ') : 'No obvious pressure language';
+    const linkSummary = d.urls && d.urls.length ? d.urls[0] : 'No link detected';
+    const html = `<div class="section-card forensic-summary">
+      <div class="verdict-box ${riskClass}">${riskText} <span>${totalFlags} indicators</span></div>
+      <div class="forensic-checks"><div><small>SENDER</small><b>${escHtml(senderSummary)}</b></div>
+      <div><small>PRESSURE SIGNS</small><b>${escHtml(pressureSummary)}</b></div>
+      <div><small>LINK DESTINATION</small><code>${escHtml(linkSummary)}</code></div></div>
+    </div>`;
+    container.innerHTML = html;
+  } catch(err) {
+    container.innerHTML = `<div class="section-card" style="color:var(--accent-red);">Error analyzing email: ${escHtml(err.message)}</div>`;
+  }
+}
+
+function renderMailPreview(d){
+  document.querySelector('.mail-brand').innerHTML = '<span>✉</span> Campus Mail';
+  document.querySelector('.mail-toolbar').textContent = 'Inbox';
+  const m = d.message || {};
+  const urls = d.urls || [];
+  let briefBody = m.body || 'This message has no readable text body.';
+  if(briefBody.length > 160){
+    const shortBody = briefBody.slice(0,160);
+    briefBody = shortBody.slice(0, shortBody.lastIndexOf(' ')).trimEnd() + '…';
+  }
+  document.getElementById('mailPreview').innerHTML = `<div class="mail-subject-row"><h2>${escHtml(m.subject || d.headers.Subject || '(no subject)')}</h2><button class="mail-icon-btn" type="button" aria-label="More options">⋮</button></div>
+    <div class="mail-sender-row"><div class="mail-sender-avatar">${escHtml((m.from || '?').slice(0,1).toUpperCase())}</div><div class="mail-sender-info"><strong>${escHtml(m.from || d.headers.From || 'Unknown sender')}</strong><small>to ${escHtml(m.to || d.headers.To || 'you')}</small></div><time>${escHtml(m.date || d.headers.Date || '')}</time></div>
+    <div class="mail-body">${escHtml(briefBody).replace(/\n/g,'<br>')}</div>
+    ${urls.length ? `<div class="mail-link-preview"><span>↗</span><div><small>LINK IN MESSAGE</small><strong>${escHtml(urls[0])}</strong></div><span class="mail-link-lock">↗</span></div>` : ''}
+    <div class="mail-actions">${urls.length ? `<button type="button" class="btn btn-secondary" id="emailLinkButton" data-url="${escHtml(urls[0])}">Open link (simulation)</button>` : ''}<button type="button" class="mail-report" onclick="mailAction('report')">⚑ Report phishing</button></div><div class="mail-toast" id="mailToast" aria-live="polite"></div><div id="emailLinkBrowser" class="browser-simulation"></div>`;
+  const linkButton = document.getElementById('emailLinkButton');
+  if(linkButton) linkButton.addEventListener('click', () => previewEmailLink(linkButton.dataset.url));
+}
+
+function renderSmsPreview(d){
+  document.querySelector('.mail-brand').innerHTML = '<span>▣</span> Messages';
+  document.querySelector('.mail-toolbar').textContent = 'Text messages';
+  const m = d.message || {};
+  const urls = d.urls || [];
+  const briefBody = (m.body || '').slice(0, 240);
+  document.getElementById('mailPreview').innerHTML = `<div class="sms-device"><div class="sms-device-status">14:22 &nbsp; ●●● &nbsp; ▰</div><div class="sms-device-header"><span>‹</span><div><b>${escHtml(m.from || 'Unknown sender')}</b><small>SMS message · not in contacts</small></div><span>⋮</span></div><div class="sms-thread-date">Today · 14:22</div><div class="sms-bubble">${escHtml(briefBody).replace(/\n/g,'<br>')}</div>${urls.length ? `<button class="sms-link" type="button" id="emailLinkButton" data-url="${escHtml(urls[0])}">${escHtml(urls[0])}</button>` : ''}<div class="mail-actions">${urls.length ? '<button type="button" class="btn btn-secondary" id="smsOpenLink">Open link (simulation)</button>' : ''}<button type="button" class="mail-report" onclick="mailAction('report')">⚑ Report message</button></div><div class="mail-toast" id="mailToast" aria-live="polite"></div><div id="emailLinkBrowser" class="browser-simulation"></div></div>`;
+  const linkButton = document.getElementById('smsOpenLink');
+  if(linkButton) linkButton.addEventListener('click', () => previewEmailLink(document.getElementById('emailLinkButton').dataset.url));
+}
+
+function mailAction(action){
+  const toast = document.getElementById('mailToast');
+  if(!toast) return;
+  toast.textContent = 'Message reported to the training security inbox.';
+}
+
+function previewEmailLink(url){
+  const content = `<div class="mock-page-brand"><span>U</span><div><b>University Portal</b><small>Account verification</small></div></div>${mockLoginMarkup({brand:'University Portal',title:'Your session expired'})}`;
+  document.getElementById('emailLinkBrowser').innerHTML = mockBrowserFrame(url, content);
+}
+
+loadEmails();
+</script>
+{% endblock %}
